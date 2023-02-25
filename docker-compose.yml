@@ -1,0 +1,42 @@
+version: '3'
+services:
+  react:
+    build:
+      context: .
+      dockerfile: ./docker/react/Dockerfile
+    container_name: react_container
+    tty: true
+    volumes:
+      - ./frontend/my-app:/app/react
+    command: sh -c "cd /app/react  && npm start"
+    ports:
+      - 3000:3000
+  go:
+    build:
+      context: .
+      dockerfile: ./docker/golang/Dockerfile
+    container_name: go_container
+    tty: true
+    volumes:
+      - ./backend:/app/go
+    command: sh -c "cd /app/go && go run server.go"
+    ports:
+      - 8000:8000
+  mysql:
+    build:
+      context: .
+      dockerfile: ./docker/mysql/Dockerfile
+    container_name: mysql_container
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: root 
+      MYSQL_DATABASE: react-go-app
+      TZ: 'Asia/Tokyo'
+    volumes:
+      - ./docker/mysql/initdb.d:/docker-entrypoint-initdb.d
+      - ./docker/mysql/conf.d:/etc/mysql/conf.d
+      - ./docker/mysql/mysql_data:/var/lib/mysql
+    ports:
+    - 3306:3306
+    links:
+      - go
